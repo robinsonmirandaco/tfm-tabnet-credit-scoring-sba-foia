@@ -2,15 +2,11 @@
 
 # Referencias bibliográficas
 
-Aréchaga, J. (2011, septiembre 15). Los españoles y las revistas científicas... ¡Que editen ellos! *El País*, 20–22.
-
 Arik, S. Ö., & Pfister, T. (2021). TabNet: Attentive interpretable tabular learning. *Proceedings of the AAAI Conference on Artificial Intelligence, 35*(8), 6679–6687. https://doi.org/10.1609/aaai.v35i8.16826
 
 Board of Governors of the Federal Reserve System. (2011). *Supervisory guidance on model risk management (SR 11-7).* https://www.federalreserve.gov/supervisionreg/srletters/sr1107.htm
 
 Brier, G. W. (1950). Verification of forecasts expressed in terms of probability. *Monthly Weather Review, 78*(1), 1–3. https://doi.org/10.1175/1520-0493(1950)078<0001:VOFEIT>2.0.CO;2
-
-Brody, J. E. (2007, noviembre 11). Mental reserves keep brain agile. *The New York Times.* https://www.nytimes.com/2007/12/11/health/11iht-11brod.8685746.html
 
 Chen, T., & Guestrin, C. (2016). XGBoost: A scalable tree boosting system. In *Proceedings of the 22nd ACM SIGKDD International Conference on Knowledge Discovery and Data Mining* (pp. 785–794). ACM. https://doi.org/10.1145/2939672.2939785
 
@@ -27,8 +23,6 @@ Friedman, J. H. (2001). Greedy function approximation: A gradient boosting machi
 Guo, C., Pleiss, G., Sun, Y., & Weinberger, K. Q. (2017). On calibration of modern neural networks. In *Proceedings of the 34th International Conference on Machine Learning* (pp. 1321–1330). PMLR.
 
 Hand, D. J., & Henley, W. E. (1997). Statistical classification methods in consumer credit scoring: A review. *Journal of the Royal Statistical Society: Series A (Statistics in Society), 160*(3), 523–541. https://doi.org/10.1111/j.1467-985X.1997.00078.x
-
-Herbst-Damm, K. L., & Kulik, J. A. (2005). Volunteer support, marital status, and the survival times of terminally ill patients. *Health Psychology, 24*(2), 225–229. https://doi.org/10.1037/0278-6133.24.2.225
 
 Hosmer, D. W., Lemeshow, S., & Sturdivant, R. X. (2013). *Applied logistic regression* (3rd ed.). Wiley.
 
@@ -47,8 +41,6 @@ Niculescu-Mizil, A., & Caruana, R. (2005). Predicting good probabilities with su
 Office of the Comptroller of the Currency. (n.d.). *Comptroller’s handbook: Model risk management.* https://www.occ.treas.gov
 
 Platt, J. C. (1999). Probabilistic outputs for support vector machines and comparisons to regularized likelihood methods. In A. J. Smola, P. L. Bartlett, B. Schölkopf, & D. Schuurmans (Eds.), *Advances in large margin classifiers* (pp. 61–74). MIT Press.
-
-Rodríguez, C. (2007). God’s eye does not look at signs: Early development and semiotics. *Infancia y Aprendizaje, 30*(3), 343–374. https://doi.org/10.1174/021037007781787462
 
 Rudin, C. (2019). Stop explaining black box machine learning models for high stakes decisions and use interpretable models instead. *Nature Machine Intelligence, 1*, 206–215. https://doi.org/10.1038/s42256-019-0048-x
 
