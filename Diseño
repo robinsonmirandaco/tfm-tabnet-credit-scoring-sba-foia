@@ -1,5 +1,7 @@
 # Trabajo Fin de Máster: Diseño
+
 ## Aprendizaje profundo tabular interpretable para scoring crediticio PYME
+
 ### Evaluación experimental comparativa frente a Regresión Logística y XGBoost
 
 ---
@@ -14,11 +16,11 @@ En el ámbito industrial, los modelos basados en *gradient boosting*, especialme
 
 A pesar de estos avances, persiste incertidumbre sobre la viabilidad real del aprendizaje profundo tabular en entornos financieros regulados, debido a preocupaciones relacionadas con:
 
-- Estabilidad del entrenamiento.
-- Interpretabilidad de las decisiones.
-- Calibración probabilística.
-- Robustez frente a cambios en la distribución de datos.
-- Aceptación industrial.
+* Estabilidad del entrenamiento.
+* Interpretabilidad de las decisiones.
+* Calibración probabilística.
+* Robustez frente a cambios en la distribución de datos.
+* Aceptación industrial.
 
 Este trabajo aborda esta brecha mediante una evaluación experimental rigurosa y reproducible.
 
@@ -48,54 +50,62 @@ Además, analizar la robustez de los modelos ante un cambio de distribución aso
 
 ## 2.2 Objetivos Específicos
 
-1. **Implementar y configurar tres modelos bajo un protocolo homogéneo:**
-   - Regresión Logística (baseline lineal).
-   - XGBoost (modelo estándar industrial).
-   - TabNet (modelo de aprendizaje profundo tabular interpretable).
+1. Implementar y configurar tres modelos bajo un protocolo homogéneo:
 
-2. **Diseñar y ejecutar un pipeline experimental reproducible** que garantice:
-   - Mismo preprocesamiento.
-   - Mismas particiones de datos.
-   - Control explícito de semillas aleatorias.
-   - Validación cruzada estratificada 5×k.
+   * Regresión Logística (baseline lineal).
+   * XGBoost (modelo estándar industrial).
+   * TabNet (modelo de aprendizaje profundo tabular interpretable).
 
-3. **Optimizar los hiperparámetros de cada modelo** mediante un esquema comparable de búsqueda, utilizando ROC-AUC como métrica objetivo primaria durante la validación.
+2. Diseñar y ejecutar un pipeline experimental reproducible que garantice:
 
-4. **Comparar el rendimiento discriminativo de los modelos** utilizando:
-   - ROC-AUC como métrica primaria.
-   - PR-AUC como métrica complementaria.
-   - KS statistic como métrica complementaria.
-   - Intervalos de confianza al 95%.
+   * Mismo preprocesamiento.
+   * Mismas particiones de datos.
+   * Control explícito de semillas aleatorias.
+   * Validación cruzada estratificada 5×k.
 
-5. **Contrastar estadísticamente la hipótesis de no inferioridad de TabNet frente a XGBoost** mediante:
-   - Diferencia media de ROC-AUC.
-   - Evaluación formal del margen Δ ≤ 0.02.
-   - Aplicación de pruebas estadísticas apropiadas sobre los resultados inter-fold.
+3. Optimizar los hiperparámetros de cada modelo mediante un esquema comparable de búsqueda, utilizando ROC-AUC como métrica objetivo primaria durante la validación.
 
-6. **Evaluar la calibración probabilística de los modelos** mediante:
-   - Brier Score.
-   - Curvas de confiabilidad.
-   - Comparación estadística de diferencias en error probabilístico.
+4. Comparar el rendimiento discriminativo de los modelos utilizando:
 
-7. **Analizar la estabilidad del rendimiento entre particiones** mediante:
-   - Desviación estándar inter-fold.
-   - Intervalos de confianza.
-   - Comparación de la dispersión entre modelos.
+   * ROC-AUC como métrica primaria.
+   * PR-AUC como métrica complementaria.
+   * KS statistic como métrica complementaria.
+   * Intervalos de confianza al 95%.
 
-8. **Evaluar la interpretabilidad global y local de los modelos** mediante:
-   - SHAP en XGBoost.
-   - Coeficientes en Regresión Logística.
-   - Máscaras de atención y atribuciones agregadas en TabNet.
-   - Análisis de coherencia interpretativa respecto al dominio crediticio.
+5. Contrastar estadísticamente la hipótesis de no inferioridad de TabNet frente a XGBoost mediante:
 
-9. **Analizar el compromiso entre discriminación, calibración e interpretabilidad** para determinar la viabilidad práctica del enfoque de aprendizaje profundo en contextos de scoring crediticio regulado.
+   * Diferencia media de ROC-AUC.
+   * Evaluación formal del margen Δ ≤ 0.02.
+   * Aplicación de pruebas estadísticas apropiadas sobre los resultados inter-fold.
 
-10. **Evaluar robustez ante cambio de distribución (stress test COVID-19)**:
-   - Entrenamiento y validación interna sobre el subconjunto pre-COVID (base).
-   - Evaluación adicional sobre el subconjunto post-COVID (estrés), manteniendo el mismo pipeline y criterios de evaluación.
-   - Comparación del deterioro relativo entre modelos en discriminación, calibración y métricas complementarias.
+6. Evaluar la calibración probabilística de los modelos mediante:
 
-11. **Derivar conclusiones fundamentadas sobre la viabilidad operativa de TabNet** en comparación con modelos tradicionales, bajo criterios cuantitativos previamente definidos.
+   * Brier Score.
+   * Curvas de confiabilidad.
+   * Comparación estadística de diferencias en error probabilístico.
+
+7. Analizar la estabilidad del rendimiento entre particiones mediante:
+
+   * Desviación estándar inter-fold.
+   * Intervalos de confianza.
+   * Comparación de la dispersión entre modelos.
+
+8. Evaluar la interpretabilidad global y local de los modelos mediante:
+
+   * SHAP en XGBoost.
+   * Coeficientes en Regresión Logística.
+   * Máscaras de atención y atribuciones agregadas en TabNet.
+   * Análisis de coherencia interpretativa respecto al dominio crediticio.
+
+9. Analizar el compromiso entre discriminación, calibración e interpretabilidad para determinar la viabilidad práctica del enfoque de aprendizaje profundo en contextos de scoring crediticio regulado.
+
+10. Evaluar robustez ante cambio de distribución (stress test COVID-19):
+
+* Entrenamiento y validación interna sobre el subconjunto pre-COVID (base).
+* Evaluación adicional sobre el subconjunto post-COVID (estrés), manteniendo el mismo pipeline y criterios de evaluación.
+* Comparación del deterioro relativo entre modelos en discriminación, calibración y métricas complementarias.
+
+11. Derivar conclusiones fundamentadas sobre la viabilidad operativa de TabNet en comparación con modelos tradicionales, bajo criterios cuantitativos previamente definidos.
 
 ---
 
@@ -112,17 +122,20 @@ La comparación entre modelos se realizará mediante validación cruzada estrati
 El desempeño discriminativo se evaluará mediante el Área Bajo la Curva ROC (ROC-AUC).
 
 Sea:
-- μ_TN = media del ROC-AUC de TabNet.
-- μ_XGB = media del ROC-AUC de XGBoost.
-- μ_RL = media del ROC-AUC de Regresión Logística.
+
+* μ_TN = media del ROC-AUC de TabNet.
+* μ_XGB = media del ROC-AUC de XGBoost.
+* μ_RL = media del ROC-AUC de Regresión Logística.
 
 Se plantea el siguiente contraste bilateral entre TabNet y XGBoost:
-- **H₀₁:** μ_TN = μ_XGB  
-- **H₁₁:** μ_TN ≠ μ_XGB  
+
+* H₀₁: μ_TN = μ_XGB
+* H₁₁: μ_TN ≠ μ_XGB
 
 De forma complementaria, se contrastará TabNet frente a Regresión Logística:
-- **H₀₁b:** μ_TN = μ_RL  
-- **H₁₁b:** μ_TN ≠ μ_RL  
+
+* H₀₁b: μ_TN = μ_RL
+* H₁₁b: μ_TN ≠ μ_RL
 
 El análisis se realizará sobre diferencias pareadas inter-fold del ROC-AUC.
 
@@ -133,38 +146,42 @@ El análisis se realizará sobre diferencias pareadas inter-fold del ROC-AUC.
 El desempeño probabilístico global se evaluará mediante el Brier Score.
 
 Sea:
-- μ_Brier_TN = media del Brier Score de TabNet.
-- μ_Brier_XGB = media del Brier Score de XGBoost.
-- μ_Brier_RL = media del Brier Score de Regresión Logística.
 
-Dado que valores menores de Brier Score indican mejor desempeño probabilístico, se plantean los siguientes contrastes unilaterales:
+* μ_Brier_TN = media del Brier Score de TabNet.
+* μ_Brier_XGB = media del Brier Score de XGBoost.
+* μ_Brier_RL = media del Brier Score de Regresión Logística.
+
+Dado que valores menores de Brier Score indican mejor desempeño probabilístico, se plantean los siguientes contrastes unilaterales.
 
 Entre TabNet y XGBoost:
-- **H₀₂:** μ_Brier_TN ≥ μ_Brier_XGB  
-- **H₁₂:** μ_Brier_TN < μ_Brier_XGB  
+
+* H₀₂: μ_Brier_TN ≥ μ_Brier_XGB
+* H₁₂: μ_Brier_TN < μ_Brier_XGB
 
 Entre TabNet y Regresión Logística:
-- **H₀₂b:** μ_Brier_TN ≥ μ_Brier_RL  
-- **H₁₂b:** μ_Brier_TN < μ_Brier_RL  
+
+* H₀₂b: μ_Brier_TN ≥ μ_Brier_RL
+* H₁₂b: μ_Brier_TN < μ_Brier_RL
 
 ---
-
 
 ## 3.3 Criterio de interpretación
 
 Se considerará que TabNet constituye una alternativa competitiva en el contexto de scoring crediticio PYME si:
 
-- Su desempeño discriminativo es estadísticamente comparable al de XGBoost.
-- Presenta desempeño probabilístico equivalente o superior.
-- Supera o iguala consistentemente a la Regresión Logística bajo el mismo protocolo experimental.
+* Su desempeño discriminativo es estadísticamente comparable al de XGBoost.
+* Presenta desempeño probabilístico equivalente o superior.
+* Supera o iguala consistentemente a la Regresión Logística bajo el mismo protocolo experimental.
+
+---
 
 ## 3.4 Justificación metodológica del criterio de no inferioridad y los contrastes de igualdad
 
-El objetivo principal del estudio incorpora un **criterio operativo de viabilidad** basado en no inferioridad, definido mediante un margen Δ = 0.02 en términos de ROC-AUC, con el fin de traducir la comparación entre modelos a una regla de decisión práctica y consistente con el uso aplicado de modelos de scoring. Este criterio se utiliza como **umbral de relevancia empírica** para interpretar la magnitud de las diferencias, evitando conclusiones basadas únicamente en significación estadística.
+El objetivo principal del estudio incorpora un criterio operativo de viabilidad basado en no inferioridad, definido mediante un margen Δ = 0.02 en términos de ROC-AUC, con el fin de traducir la comparación entre modelos a una regla de decisión práctica y consistente con el uso aplicado de modelos de scoring. Este criterio se utiliza como umbral de relevancia empírica para interpretar la magnitud de las diferencias, evitando conclusiones basadas únicamente en significación estadística.
 
-De forma complementaria, el estudio plantea **contrastes bilaterales de igualdad** para comparar TabNet frente a XGBoost y Regresión Logística, con el propósito de evaluar si existen diferencias estadísticamente detectables en cualquier dirección bajo el mismo protocolo experimental. Esta dualidad responde a dos necesidades metodológicas: (i) disponer de un criterio de decisión cuantitativo asociado a viabilidad práctica (margen Δ) y (ii) mantener un marco inferencial simétrico que permita detectar tanto mejoras como deterioros, especialmente relevante en entornos regulados donde degradaciones de desempeño o calibración deben identificarse explícitamente.
+De forma complementaria, el estudio plantea contrastes bilaterales de igualdad para comparar TabNet frente a XGBoost y Regresión Logística, con el propósito de evaluar si existen diferencias estadísticamente detectables en cualquier dirección bajo el mismo protocolo experimental. Esta dualidad responde a dos necesidades metodológicas: (i) disponer de un criterio de decisión cuantitativo asociado a viabilidad práctica (margen Δ) y (ii) mantener un marco inferencial simétrico que permita detectar tanto mejoras como deterioros.
 
-En consecuencia, los resultados se interpretarán de manera jerárquica: primero, verificando el cumplimiento del **criterio de no inferioridad como condición de viabilidad**, y segundo, utilizando los contrastes bilaterales y los intervalos de confianza al 95% para caracterizar la evidencia estadística, la dirección del efecto y la incertidumbre asociada a las diferencias observadas.
+En consecuencia, los resultados se interpretarán de manera jerárquica: primero, verificando el cumplimiento del criterio de no inferioridad como condición de viabilidad, y segundo, utilizando los contrastes bilaterales y los intervalos de confianza al 95% para caracterizar la evidencia estadística, la dirección del efecto y la incertidumbre asociada a las diferencias observadas.
 
 ---
 
@@ -183,7 +200,7 @@ Se considerará que el modelo de aprendizaje profundo tabular es viable si cumpl
 
 # 5. Tipo de trabajo
 
-El presente TFM se enmarca en la modalidad **Tipo 3: Comparativa de soluciones**, al realizar un análisis experimental sistemático entre distintos enfoques de modelado aplicados a un mismo problema de clasificación binaria.
+El presente TFM se enmarca en la modalidad Tipo 3: Comparativa de soluciones, al realizar un análisis experimental sistemático entre distintos enfoques de modelado aplicados a un mismo problema de clasificación binaria.
 
 ---
 
@@ -193,67 +210,70 @@ El presente TFM se enmarca en la modalidad **Tipo 3: Comparativa de soluciones**
 
 ### FOIA: Programas 7(a)
 
-Existen cuatro archivos para el programa de préstamos **7(a)** que segmentan los datos por década.
+Existen cuatro archivos para el programa de préstamos 7(a) que segmentan los datos por década.
 
 Se incluye un diccionario de datos para facilitar la navegación y comprensión de los archivos.
 
-> **Nota:** Los datos de la FOIA para los programas 7(a) se actualizan trimestralmente. Por lo general, la información está disponible un mes después del cierre de cada trimestre.
+Nota: Los datos de la FOIA para los programas 7(a) se actualizan trimestralmente. Por lo general, la información está disponible un mes después del cierre de cada trimestre.
 
 ---
 
 ## Datos y Recursos
 
-| Nombre del Archivo | Formato |
-| :--- | :--- |
-| Diccionario de Datos 7a_504_FOIA (al 31/12/25) | .xlsx |
-| FOIA - 504 (FY1991-FY2009) (al 31/12/25) | .csv |
-| FOIA - 504 (FY2010-Presente) (al 31/12/25) | .csv |
-| FOIA - 7(a) (FY1991-FY1999) (al 31/12/25) | .csv |
-| FOIA - 7(a) (FY2000-FY2009) (al 31/12/25) | .csv |
-| FOIA - 7(a) (FY2010-FY2019) (al 31/12/25) | .csv |
-| FOIA - 7(a) (FY2020-Presente) (al 31/12/25) | .csv |
+| Nombre del Archivo                             | Formato |
+| ---------------------------------------------- | ------- |
+| Diccionario de Datos 7a_504_FOIA (al 31/12/25) | .xlsx   |
+| FOIA - 504 (FY1991-FY2009) (al 31/12/25)       | .csv    |
+| FOIA - 504 (FY2010-Presente) (al 31/12/25)     | .csv    |
+| FOIA - 7(a) (FY1991-FY1999) (al 31/12/25)      | .csv    |
+| FOIA - 7(a) (FY2000-FY2009) (al 31/12/25)      | .csv    |
+| FOIA - 7(a) (FY2010-FY2019) (al 31/12/25)      | .csv    |
+| FOIA - 7(a) (FY2020-Presente) (al 31/12/25)    | .csv    |
 
 ---
 
 ## Información Adicional
 
-- **Última actualización:** 6 de febrero de 2026, 9:58 AM (UTC-05:00)
-- **Fecha de creación:** 9 de marzo de 2021, 12:33 PM (UTC-05:00)
+* Última actualización: 6 de febrero de 2026, 9:58 AM (UTC-05:00)
+* Fecha de creación: 9 de marzo de 2021, 12:33 PM (UTC-05:00)
 
 ## 6.2 Características
 
-- Datos tabulares estructurados.
-- Variables financieras relacionadas con comportamiento crediticio.
-- Problema de clasificación binaria (default vs no default).
-- Dataset representativo de escenarios reales de scoring PYME en EE.UU.
+* Datos tabulares estructurados.
+* Variables financieras relacionadas con comportamiento crediticio.
+* Problema de clasificación binaria (default vs no default).
+* Dataset representativo de escenarios reales de scoring PYME en EE.UU.
 
 ## 6.3 Justificación
 
-- Relevancia en investigación académica.
-- Idoneidad para modelos tabulares.
-- Adecuado para evaluación de interpretabilidad.
-- Representativo de escenarios reales de scoring.
+* Relevancia en investigación académica.
+* Idoneidad para modelos tabulares.
+* Adecuado para evaluación de interpretabilidad.
+* Representativo de escenarios reales de scoring.
 
 ---
 
 # 7. Modelos a evaluar
 
 ## 7.1 Baseline estadístico
-- Regresión Logística.
+
+* Regresión Logística.
 
 ## 7.2 Modelo estándar industrial
-- XGBoost.
+
+* XGBoost.
 
 ## 7.3 Modelo deep learning tabular
-- TabNet.
+
+* TabNet.
 
 ## 7.4 Justificación comparativa
 
 Permiten comparar tres paradigmas de modelado:
 
-- Modelo lineal interpretable.
-- Ensemble basado en árboles.
-- Arquitectura profunda con atención interpretable.
+* Modelo lineal interpretable.
+* Ensemble basado en árboles.
+* Arquitectura profunda con atención interpretable.
 
 ---
 
@@ -263,50 +283,50 @@ Permiten comparar tres paradigmas de modelado:
 
 El diseño contempla dos evaluaciones complementarias:
 
-1. **Evaluación base (pre-COVID):** comparación principal mediante validación cruzada estratificada 5×k.
-2. **Evaluación de estrés (post-COVID):** evaluación adicional para analizar robustez ante cambio de distribución.
+1. Evaluación base (pre-COVID): comparación principal mediante validación cruzada estratificada 5×k.
+2. Evaluación de estrés (post-COVID): evaluación adicional para analizar robustez ante cambio de distribución.
 
 ## 8.2 División de datos
 
-- Validación cruzada estratificada (k = 5) en el subconjunto pre-COVID (base).
-- Control de semillas aleatorias.
-- Reproducibilidad completa del pipeline.
+* Validación cruzada estratificada (k = 5) en el subconjunto pre-COVID (base).
+* Control de semillas aleatorias.
+* Reproducibilidad completa del pipeline.
 
 ## 8.3 Optimización
 
-- Búsqueda en rejilla (Grid Search) o método equivalente.
-- Optimización basada en ROC-AUC.
+* Búsqueda en rejilla (Grid Search) o método equivalente.
+* Optimización basada en ROC-AUC.
 
 ## 8.4 Métrica primaria
 
-- ROC-AUC.
+* ROC-AUC.
 
 ## 8.5 Métricas secundarias
 
-- PR-AUC.
-- F1-score.
-- KS statistic.
-- Matriz de confusión.
+* PR-AUC.
+* F1-score.
+* KS statistic.
+* Matriz de confusión.
 
 ## 8.6 Calibración
 
-- Brier Score.
-- Curvas de confiabilidad (Reliability curves).
+* Brier Score.
+* Curvas de confiabilidad (Reliability curves).
 
 ## 8.7 Interpretabilidad
 
-- SHAP values para XGBoost.
-- Feature masks y mecanismos de atención para TabNet.
-- Comparación de importancia global.
-- Análisis local de casos representativos.
-- Evaluación de estabilidad de explicaciones.
+* SHAP values para XGBoost.
+* Feature masks y mecanismos de atención para TabNet.
+* Comparación de importancia global.
+* Análisis local de casos representativos.
+* Evaluación de estabilidad de explicaciones.
 
 ## 8.8 Control metodológico
 
-- Misma partición para todos los modelos.
-- Misma estrategia de validación.
-- Mismo preprocesamiento.
-- Comparación bajo condiciones experimentales homogéneas.
+* Misma partición para todos los modelos.
+* Misma estrategia de validación.
+* Mismo preprocesamiento.
+* Comparación bajo condiciones experimentales homogéneas.
 
 ---
 
@@ -332,29 +352,29 @@ El diseño contempla dos evaluaciones complementarias:
 
 ## Incluye
 
-- Comparación experimental rigurosa.
-- Evaluación de rendimiento predictivo.
-- Análisis de calibración.
-- Evaluación de interpretabilidad.
-- Pipeline reproducible.
+* Comparación experimental rigurosa.
+* Evaluación de rendimiento predictivo.
+* Análisis de calibración.
+* Evaluación de interpretabilidad.
+* Pipeline reproducible.
 
 ## No incluye
 
-- Implementación en producción.
-- Desarrollo de nuevos algoritmos.
-- Validación con datos propietarios.
-- Análisis legal exhaustivo.
-- Sistemas fintech completos.
+* Implementación en producción.
+* Desarrollo de nuevos algoritmos.
+* Validación con datos propietarios.
+* Análisis legal exhaustivo.
+* Sistemas fintech completos.
 
 ---
 
 # 11. Contribución esperada
 
-- Evaluación empírica reproducible del aprendizaje profundo tabular en scoring crediticio.
-- Definición operacional de viabilidad en entornos financieros.
-- Análisis del compromiso entre rendimiento e interpretabilidad.
-- Evidencia cuantitativa sobre la competitividad de TabNet frente a XGBoost.
-- Marco metodológico replicable para estudios comparativos futuros.
+* Evaluación empírica reproducible del aprendizaje profundo tabular en scoring crediticio.
+* Definición operacional de viabilidad en entornos financieros.
+* Análisis del compromiso entre rendimiento e interpretabilidad.
+* Evidencia cuantitativa sobre la competitividad de TabNet frente a XGBoost.
+* Marco metodológico replicable para estudios comparativos futuros.
 
 ---
 
