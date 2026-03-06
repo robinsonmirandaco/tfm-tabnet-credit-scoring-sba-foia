@@ -20,7 +20,7 @@ Los modelos evaluados en el estudio son:
 ## Estructura del repositorio
 
 ```
-credit_scoring_experiments.ipynb   # Notebook principal que contiene el flujo completo del estudio experimental
+RMP_TFM_Scoring_Crediticio_Pyme.ipynb   # Notebook principal que contiene el flujo completo del estudio experimental
 
 data/
   raw/                              # Conjunto de datos originales utilizados en el análisis
