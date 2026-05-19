@@ -1,0 +1,1072 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Panel de defensa · ¿Iguala TabNet a XGBoost? · UNIR · TFM</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Franklin:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --unir:#1E98CC; --unir-deep:#00566C; --unir-2:#219BC3;
+    --bg:#FAFBFC; --panel:#FFFFFF; --panel-2:#F4F6F8;
+    --line:#E4E8ED; --line-2:#D4DAE1;
+    --ink:#16202A; --muted:#5C6873; --faint:#8C97A2;
+    --xgb:#00566C;   /* campeón — autoridad */
+    --rl:#7E8A97;    /* baseline lineal — neutro */
+    --tab:#1E98CC;   /* TabNet — protagonista, color de marca */
+    --alert:#B3261E; --good:#1F8A4C;
+    --r:16px; --r-s:11px;
+    --sh:0 1px 2px rgba(16,32,42,.04), 0 8px 28px -14px rgba(16,32,42,.16);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{background:var(--bg);color:var(--ink);
+    font-family:"Libre Franklin",system-ui,sans-serif;-webkit-font-smoothing:antialiased;
+    line-height:1.5;overflow-x:hidden}
+  .mono{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums}
+  .wrap{max-width:1280px;margin:0 auto;padding:0 32px}
+
+  /* ── Topbar ───────────────────────────────── */
+  header{position:sticky;top:0;z-index:60;background:rgba(250,251,252,.86);
+    backdrop-filter:saturate(180%) blur(16px);border-bottom:1px solid var(--line)}
+  .top{display:flex;align-items:center;gap:22px;max-width:1280px;margin:0 auto;
+    padding:13px 32px}
+  .top img{height:30px;display:block}
+  .top .div{width:1px;height:30px;background:var(--line-2)}
+  .top h1{font-size:14px;font-weight:700;letter-spacing:-.01em;line-height:1.2}
+  .top h1 small{display:block;font-weight:500;color:var(--muted);font-size:11.5px;
+    letter-spacing:.04em;text-transform:uppercase;margin-top:2px}
+  .vbadge{margin-left:auto;display:flex;align-items:center;gap:10px;
+    background:#fff;border:1px solid var(--line);border-radius:999px;
+    padding:7px 16px 7px 14px;box-shadow:var(--sh)}
+  .vbadge .dot{width:9px;height:9px;border-radius:50%;background:var(--alert);
+    box-shadow:0 0 0 4px rgba(179,38,30,.14)}
+  .vbadge span{font-family:"IBM Plex Mono",monospace;font-size:12px;font-weight:600;
+    color:var(--alert);letter-spacing:.02em}
+
+  /* ── Hero ─────────────────────────────────── */
+  .hero{padding:64px 0 30px}
+  .eyebrow{display:inline-flex;align-items:center;gap:9px;font-family:"IBM Plex Mono",monospace;
+    font-size:11.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--unir-deep);
+    background:rgba(30,152,204,.09);border:1px solid rgba(30,152,204,.22);
+    padding:7px 14px;border-radius:999px;font-weight:600}
+  .hero h2{font-size:clamp(34px,5.4vw,62px);font-weight:800;letter-spacing:-.022em;
+    line-height:1.04;margin:22px 0 0;max-width:18ch}
+  .hero h2 em{font-style:normal;color:var(--unir);position:relative}
+  .hero h2 em::after{content:"";position:absolute;left:0;right:0;bottom:.06em;height:.10em;
+    background:rgba(30,152,204,.28)}
+  .hero p{margin-top:20px;max-width:64ch;font-size:18px;color:var(--muted)}
+  .hero p b{color:var(--ink);font-weight:600}
+
+  /* ── Module shell ─────────────────────────── */
+  .mod{margin:44px 0;background:var(--panel);border:1px solid var(--line);
+    border-radius:var(--r);box-shadow:var(--sh);overflow:hidden}
+  .mod-h{display:flex;align-items:flex-start;gap:18px;padding:26px 30px 0}
+  .mnum{font-family:"IBM Plex Mono",monospace;font-size:13px;font-weight:700;
+    color:#fff;background:var(--unir-deep);width:34px;height:34px;border-radius:9px;
+    display:grid;place-items:center;flex:none;margin-top:2px}
+  .mod-h h3{font-size:23px;font-weight:700;letter-spacing:-.015em}
+  .mod-h p{color:var(--muted);font-size:14.5px;margin-top:5px;max-width:70ch}
+  .mod-h p .plus{display:inline;color:var(--unir-deep);font-weight:600}
+  .mod-h p .plus::before{content:"El plus experimental · ";font-family:"IBM Plex Mono",monospace;
+    font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--unir);font-weight:700}
+  .mod-b{padding:26px 30px 30px}
+
+  /* segmented controls */
+  .seg{display:inline-flex;border:1px solid var(--line-2);border-radius:10px;
+    background:var(--panel-2);padding:3px;gap:2px}
+  .seg button{font-family:"IBM Plex Mono",monospace;font-size:12.5px;font-weight:600;
+    border:0;background:transparent;color:var(--muted);padding:8px 15px;border-radius:7px;
+    cursor:pointer;transition:.18s;letter-spacing:.02em}
+  .seg button:hover{color:var(--ink)}
+  .seg button.on{background:#fff;color:var(--unir-deep);box-shadow:0 1px 2px rgba(16,32,42,.12)}
+  .narr{display:flex;gap:16px;align-items:flex-start;background:var(--panel-2);
+    border:1px solid var(--line);border-left:3px solid var(--unir);border-radius:12px;
+    padding:16px 20px;margin:18px 0 2px}
+  .narr .ic{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.16em;
+    color:var(--unir);font-weight:700;text-transform:uppercase;white-space:nowrap;padding-top:3px}
+  .narr p{margin:0;font-size:15.5px;color:var(--muted);line-height:1.55;transition:opacity .25s}
+  .narr p b{color:var(--ink);font-weight:600}
+  .narr p .hl{color:var(--unir-deep);font-weight:700}
+  .narr p .nxt{display:block;margin-top:7px;font-family:"IBM Plex Mono",monospace;
+    font-size:12.5px;color:var(--faint)}
+  .ctl-row{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:8px}
+  .ctl-lbl{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.16em;
+    text-transform:uppercase;color:var(--faint);font-weight:600}
+
+  /* ── M1 : draggable margin ────────────────── */
+  .axis-wrap{margin-top:26px;position:relative;height:230px;
+    background:linear-gradient(180deg,#fff,#FAFBFC);border:1px solid var(--line);
+    border-radius:14px;padding:54px 60px 46px}
+  .axis{position:absolute;left:60px;right:60px;top:118px;height:3px;background:var(--line-2);border-radius:2px}
+  .tick{position:absolute;top:-7px;width:1px;height:17px;background:var(--line-2)}
+  .tick b{position:absolute;top:20px;left:50%;transform:translateX(-50%);
+    font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--faint)}
+  .band{position:absolute;top:84px;height:70px;background:rgba(30,152,204,.13);
+    border-left:1.5px dashed var(--unir);border-right:1.5px dashed var(--unir);
+    border-radius:3px;transition:left .12s linear,width .12s linear}
+  .band-cap{position:absolute;top:-26px;left:50%;transform:translateX(-50%);
+    font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--unir-deep);
+    font-weight:600;white-space:nowrap}
+  .mk{position:absolute;top:88px;transform:translateX(-50%);text-align:center}
+  .mk .pin{width:15px;height:15px;border-radius:50%;border:3px solid #fff;
+    box-shadow:0 0 0 1px var(--line-2),0 4px 10px -3px rgba(16,32,42,.4);margin:0 auto;
+    transition:left .5s cubic-bezier(.16,1,.3,1)}
+  .mk .lab{font-family:"IBM Plex Mono",monospace;font-size:12px;font-weight:700;
+    margin-top:9px;white-space:nowrap}
+  .mk .v{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--muted);margin-top:1px}
+  .mk.tn .lab{color:var(--tab)} .mk.xg .lab{color:var(--xgb)}
+  .handle{position:absolute;top:78px;width:30px;height:90px;transform:translateX(-50%);
+    cursor:ew-resize;touch-action:none;display:grid;place-items:center;z-index:5}
+  .handle:focus{outline:none}
+  .handle .grip{width:6px;height:90px;background:var(--unir);border-radius:4px;
+    box-shadow:0 4px 14px -4px rgba(30,152,204,.7);transition:transform .12s,box-shadow .12s}
+  .handle:hover .grip,.handle:focus .grip{transform:scaleX(1.5);box-shadow:0 0 0 6px rgba(30,152,204,.16)}
+  .handle .knob{position:absolute;top:-30px;background:var(--unir);color:#fff;
+    font-family:"IBM Plex Mono",monospace;font-size:12px;font-weight:700;
+    padding:5px 10px;border-radius:8px;white-space:nowrap;box-shadow:var(--sh)}
+  .handle .knob::after{content:"";position:absolute;left:50%;bottom:-5px;
+    transform:translateX(-50%);border:5px solid transparent;border-top-color:var(--unir)}
+  .drag-hint{position:absolute;bottom:12px;left:60px;font-family:"IBM Plex Mono",monospace;
+    font-size:11px;color:var(--faint)}
+  .drag-hint kbd{background:var(--panel-2);border:1px solid var(--line-2);border-radius:5px;
+    padding:1px 6px;font-size:10.5px}
+
+  .m1-grid{display:grid;grid-template-columns:1fr 360px;gap:30px;margin-top:24px;align-items:stretch}
+  @media(max-width:920px){.m1-grid{grid-template-columns:1fr}}
+  .verdict{background:var(--unir-deep);color:#fff;border-radius:14px;padding:28px 28px;
+    display:flex;flex-direction:column;justify-content:center;position:relative;overflow:hidden}
+  .verdict::before{content:"";position:absolute;right:-60px;top:-60px;width:200px;height:200px;
+    border-radius:50%;background:rgba(255,255,255,.05)}
+  .verdict .vk{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.2em;
+    text-transform:uppercase;color:rgba(255,255,255,.6);font-weight:600}
+  .verdict .vbig{font-size:30px;font-weight:800;line-height:1.08;margin-top:12px;letter-spacing:-.01em}
+  .verdict .vbig u{text-decoration:none;color:#7FD0EE}
+  .verdict .multi{font-family:"IBM Plex Mono",monospace;font-size:56px;font-weight:700;
+    margin-top:18px;line-height:1;color:#fff}
+  .verdict .multi.ok{color:#7FE3A8}
+  .verdict .vsub{font-size:13.5px;color:rgba(255,255,255,.78);margin-top:10px}
+  .breakeven{margin-top:18px;padding-top:16px;border-top:1px solid rgba(255,255,255,.16);
+    font-family:"IBM Plex Mono",monospace;font-size:12px;color:rgba(255,255,255,.8)}
+  .breakeven b{color:#fff}
+
+  /* ── M2 : scrubber ────────────────────────── */
+  .scrub{position:relative;margin:26px 0 6px;height:54px}
+  .scrub .track{position:absolute;left:0;right:0;top:24px;height:6px;border-radius:4px;
+    background:linear-gradient(90deg,#DCE6EC 0%,#F1D9B8 50%,#E9C7C5 100%)}
+  .scrub .fill{position:absolute;left:0;top:24px;height:6px;border-radius:4px;
+    background:var(--unir);transition:width .05s linear}
+  .scrub .lab{position:absolute;top:0;font-family:"IBM Plex Mono",monospace;
+    font-size:11px;color:var(--faint);font-weight:600}
+  .scrub .lab.a{left:0}.scrub .lab.m{left:50%;transform:translateX(-50%);color:var(--alert)}
+  .scrub .lab.b{right:0}
+  .scrub .sh{position:absolute;top:14px;width:26px;height:26px;border-radius:50%;
+    background:#fff;border:3px solid var(--unir);transform:translateX(-50%);cursor:ew-resize;
+    touch-action:none;box-shadow:0 4px 14px -4px rgba(30,152,204,.6);z-index:4;
+    transition:transform .12s}
+  .scrub .sh:hover,.scrub .sh:focus{transform:translateX(-50%) scale(1.14);outline:none}
+  .scrub .sh::after{content:"";position:absolute;inset:7px;border-radius:50%;background:var(--unir)}
+
+  .chart{position:relative;height:340px;margin-top:26px;
+    border-left:1px solid var(--line-2);border-bottom:1px solid var(--line-2)}
+  .gl{position:absolute;left:0;right:0;border-top:1px dashed rgba(22,32,42,.07)}
+  .gl span{position:absolute;left:-44px;top:-8px;font-family:"IBM Plex Mono",monospace;
+    font-size:10.5px;color:var(--faint)}
+  .bars{position:absolute;inset:0;display:flex;align-items:flex-end;
+    justify-content:space-around;padding:0 30px}
+  .bc{width:20%;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%}
+  .bar{width:66%;border-radius:7px 7px 0 0;position:relative;cursor:pointer;
+    box-shadow:inset 0 2px 0 rgba(255,255,255,.28)}
+  .bar .bv{position:absolute;top:-29px;left:50%;transform:translateX(-50%);
+    font-family:"IBM Plex Mono",monospace;font-weight:700;font-size:16px;white-space:nowrap}
+  .bar:hover{filter:brightness(1.07)}
+  .bn{margin-top:11px;font-family:"IBM Plex Mono",monospace;font-size:12.5px;
+    color:var(--muted);font-weight:600}
+  .deltas{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:26px}
+  .dc{background:var(--panel-2);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+  .dc .dn{font-family:"IBM Plex Mono",monospace;font-size:13px;font-weight:600;color:var(--muted)}
+  .dc .dv{font-family:"IBM Plex Mono",monospace;font-size:28px;font-weight:700;margin-top:6px}
+  .dc .dt{font-size:12.5px;color:var(--faint);margin-top:4px}
+
+  /* ── M3 : decision sim ────────────────────── */
+  .m3grid{display:grid;grid-template-columns:1.4fr 1fr;gap:30px;margin-top:24px;align-items:center}
+  @media(max-width:920px){.m3grid{grid-template-columns:1fr}}
+  .dist{position:relative;height:260px;border-bottom:1px solid var(--line-2)}
+  .dist svg{position:absolute;inset:0;width:100%;height:100%}
+  .cut{position:absolute;top:0;bottom:0;width:2px;background:var(--alert);cursor:ew-resize;
+    touch-action:none;transform:translateX(-50%);z-index:5}
+  .cut::before{content:"";position:absolute;top:-2px;left:50%;transform:translateX(-50%);
+    width:16px;height:16px;border-radius:50%;background:var(--alert);border:3px solid #fff;
+    box-shadow:0 3px 8px -2px rgba(179,38,30,.6)}
+  .cut b{position:absolute;top:22px;left:50%;transform:translateX(-50%);
+    font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--alert);
+    background:#fff;padding:2px 6px;border:1px solid var(--line);border-radius:6px;white-space:nowrap}
+  .m3legend{display:flex;flex-wrap:wrap;gap:20px;margin-top:16px;
+    font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--muted)}
+  .m3legend i{display:inline-block;width:13px;height:13px;border-radius:3px;
+    margin-right:8px;vertical-align:-2px}
+  .m3legend .cutmark{width:4px;height:14px;border-radius:1px;background:var(--alert)}
+  .kpi{display:flex;flex-direction:column;gap:14px}
+  .kbox{border:1px solid var(--line);border-radius:13px;padding:18px 20px;background:var(--panel-2)}
+  .kbox .kk{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--faint);font-weight:600}
+  .kbox .kv{font-family:"IBM Plex Mono",monospace;font-size:38px;font-weight:700;margin-top:6px;line-height:1}
+  .kbox .kv small{font-size:.42em;color:var(--muted);font-weight:500}
+  .note{font-size:12.5px;color:var(--faint);margin-top:18px;line-height:1.6;
+    border-left:2px solid var(--line-2);padding-left:14px}
+
+  /* ── M4 : economía ────────────────────────── */
+  .econ-ctl{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-bottom:8px}
+  @media(max-width:920px){.econ-ctl{grid-template-columns:repeat(2,1fr)}}
+  .ec{background:var(--panel-2);border:1px solid var(--line);border-radius:12px;padding:15px 16px}
+  .ec label{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.1em;
+    text-transform:uppercase;color:var(--faint);font-weight:600;display:block}
+  .ec .ev{font-family:"IBM Plex Mono",monospace;font-size:21px;font-weight:700;
+    color:var(--unir-deep);margin:7px 0 10px}
+  .ec input[type=range]{width:100%;-webkit-appearance:none;height:5px;border-radius:3px;
+    background:var(--line-2);outline:none}
+  .ec input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;
+    border-radius:50%;background:var(--unir);border:3px solid #fff;cursor:pointer;
+    box-shadow:0 2px 6px -1px rgba(30,152,204,.6)}
+  .ec input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;
+    background:var(--unir);border:3px solid #fff;cursor:pointer}
+  .econ-grid{display:grid;grid-template-columns:1fr 380px;gap:30px;margin-top:24px;align-items:stretch}
+  @media(max-width:920px){.econ-grid{grid-template-columns:1fr}}
+  .econ-cards{display:flex;flex-direction:column;gap:12px}
+  .mcard{display:grid;grid-template-columns:140px 1fr auto;align-items:center;gap:18px;
+    background:var(--panel-2);border:1px solid var(--line);border-radius:12px;padding:16px 20px}
+  .mcard .mn{font-family:"IBM Plex Mono",monospace;font-size:14px;font-weight:700}
+  .mcard .track{height:9px;border-radius:5px;background:var(--line-2);overflow:hidden;position:relative}
+  .mcard .bar{height:100%;border-radius:5px;transition:width .8s cubic-bezier(.16,1,.3,1)}
+  .mcard .mv{font-family:"IBM Plex Mono",monospace;font-size:17px;font-weight:700;text-align:right;min-width:130px}
+  .mcard .mv small{display:block;font-size:11px;color:var(--faint);font-weight:500}
+  .econ-verdict{background:var(--alert);color:#fff;border-radius:14px;padding:26px 26px;
+    display:flex;flex-direction:column;justify-content:center;position:relative;overflow:hidden}
+  .econ-verdict::before{content:"";position:absolute;right:-50px;top:-50px;width:180px;height:180px;
+    border-radius:50%;background:rgba(255,255,255,.07)}
+  .ev-k{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.16em;
+    text-transform:uppercase;color:rgba(255,255,255,.72);font-weight:600}
+  .ev-big{font-size:clamp(34px,4.4vw,52px);font-weight:700;line-height:1.02;margin-top:12px}
+  .ev-sub{font-size:13px;color:rgba(255,255,255,.85);margin-top:8px}
+  .ev-row{display:flex;gap:24px;margin-top:18px;padding-top:16px;border-top:1px solid rgba(255,255,255,.2)}
+  .ev-row span{font-size:18px;font-weight:700;display:block}
+  .ev-row small{font-size:11.5px;color:rgba(255,255,255,.78)}
+
+  /* ── Presenter mode ───────────────────────── */
+  .present-btn{position:fixed;right:22px;bottom:22px;z-index:70;border:0;cursor:pointer;
+    background:var(--unir-deep);color:#fff;font-family:"IBM Plex Mono",monospace;
+    font-size:13px;font-weight:700;letter-spacing:.04em;padding:13px 20px;border-radius:999px;
+    box-shadow:0 10px 30px -8px rgba(0,86,108,.6);transition:.2s}
+  .present-btn:hover{transform:translateY(-2px);box-shadow:0 16px 36px -8px rgba(0,86,108,.7)}
+  .stage{position:fixed;inset:0;z-index:65;pointer-events:none;opacity:0;
+    transition:opacity .4s;background:
+      radial-gradient(120% 80% at 50% 0%,rgba(0,86,108,.06),transparent 60%)}
+  body.presenting .stage{opacity:1}
+  body.presenting{padding-bottom:120px}
+  body.presenting header{filter:blur(2px) opacity(.35);pointer-events:none}
+  body.presenting .present-btn{display:none}
+  .mod.spot{box-shadow:0 0 0 2px var(--unir),0 30px 80px -30px rgba(0,86,108,.5);
+    transform:scale(1.006)}
+  .mod{transition:box-shadow .5s,transform .5s,opacity .5s}
+  body.presenting .mod:not(.spot),body.presenting .close:not(.spot),
+  body.presenting .hero{opacity:.32;filter:saturate(.5)}
+  .close.spot{box-shadow:0 0 0 2px var(--unir)}
+  .stage-bar{position:fixed;left:0;right:0;bottom:0;pointer-events:auto;
+    background:rgba(15,28,36,.96);
+    backdrop-filter:blur(10px);color:#fff;display:flex;align-items:center;gap:26px;
+    padding:18px 34px;border-top:1px solid rgba(255,255,255,.12)}
+  .stage-dots{display:flex;gap:9px}
+  .stage-dots i{width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,.22);transition:.3s}
+  .stage-dots i.on{background:var(--unir);box-shadow:0 0 0 4px rgba(30,152,204,.22);transform:scale(1.1)}
+  .stage-cue{flex:1;font-size:18px;font-weight:600;letter-spacing:-.01em;line-height:1.3}
+  .stage-cue em{color:#7FD0EE;font-style:normal}
+  .stage-nav{display:flex;align-items:center;gap:10px}
+  .stage-nav button{background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.18);
+    border-radius:9px;padding:9px 14px;font-family:"IBM Plex Mono",monospace;font-size:13px;
+    font-weight:600;cursor:pointer;transition:.18s}
+  .stage-nav button:hover{background:rgba(255,255,255,.2)}
+  .stage-nav #stCount{color:rgba(255,255,255,.7);font-size:12px;padding:0 4px}
+
+  /* ── Closing ──────────────────────────────── */
+  .close{margin:54px 0 28px;background:var(--unir-deep);color:#fff;border-radius:var(--r);
+    padding:54px 48px;position:relative;overflow:hidden}
+  .close::after{content:"";position:absolute;right:-80px;bottom:-80px;width:280px;height:280px;
+    border-radius:50%;background:rgba(255,255,255,.045)}
+  .close .ck{font-family:"IBM Plex Mono",monospace;font-size:12px;letter-spacing:.24em;
+    text-transform:uppercase;color:rgba(255,255,255,.6);font-weight:600}
+  .close blockquote{font-size:clamp(24px,3.6vw,40px);font-weight:800;line-height:1.16;
+    letter-spacing:-.015em;margin-top:18px;max-width:24ch}
+  .sumbox{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--unir);
+    border-radius:14px;padding:24px 28px;box-shadow:var(--sh)}
+  .sumk{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.12em;
+    text-transform:uppercase;color:var(--unir-deep);font-weight:700;margin-bottom:14px}
+  .sumbox ul{list-style:none;display:flex;flex-direction:column;gap:11px}
+  .sumbox li{position:relative;padding-left:22px;font-size:14.5px;color:var(--muted);line-height:1.55}
+  .sumbox li::before{content:"";position:absolute;left:2px;top:9px;width:7px;height:7px;
+    border-radius:2px;background:var(--unir)}
+  .sumbox li b{color:var(--ink);font-weight:700}
+  .byline{margin-top:18px;font-family:"IBM Plex Mono",monospace;font-size:12px;
+    color:var(--faint);letter-spacing:.03em}
+  .cclose{margin-top:18px;font-size:15px;color:rgba(255,255,255,.82);max-width:46ch}
+  .close blockquote em{color:#7FD0EE;font-style:normal}
+
+  footer{padding:30px 0 80px;color:var(--muted);font-size:14px;line-height:1.6}
+  footer b{color:var(--ink)}
+  .reveal{opacity:0;transform:translateY(22px)}
+  .reveal.in{opacity:1;transform:none;transition:.85s cubic-bezier(.16,1,.3,1)}
+  ::selection{background:var(--unir);color:#fff}
+  .tip{position:fixed;pointer-events:none;background:var(--ink);color:#fff;
+    font-family:"IBM Plex Mono",monospace;font-size:12px;padding:8px 11px;border-radius:8px;
+    opacity:0;transition:.12s;z-index:100;box-shadow:var(--sh);white-space:nowrap}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="top">
+    <img id="logo" alt="UNIR">
+    <div class="div"></div>
+    <h1>Panel de defensa · ¿Iguala TabNet al estándar industrial?
+      <small>TFM · Riesgo de crédito para pymes · Robinson J. Miranda Pérez</small></h1>
+    <div class="vbadge"><span class="dot" id="hdot"></span><span id="hverdict">TabNet no iguala a XGBoost</span></div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <div class="hero">
+    <span class="eyebrow">◆ Comparativa experimental · TabNet vs XGBoost vs Regresión Logística</span>
+    <h2>¿Iguala TabNet al estándar industrial?<br>La respuesta es <em>no</em>.</h2>
+    <p>Y eso es el hallazgo, no un fracaso. La hipótesis era que TabNet podía ser
+      <b>“no inferior”</b>: <b>no peor</b>, en su capacidad de acertar quién pagará un
+      crédito y quién no, que <b>XGBoost</b>, el algoritmo de <i>gradient boosting</i>
+      que la industria usa como estándar de referencia. Para que el resultado no pudiera
+      amañarse a posteriori, se fijó <b>de antemano</b> cuánta diferencia se estaba
+      dispuesto a tolerar; solo después se midió, e incluso se sometió a los modelos a
+      un golpe económico real: <b>el COVID</b>.</p>
+  </div>
+
+  <!-- ───── MÓDULO 1 ───── -->
+  <div class="mod reveal">
+    <div class="mod-h">
+      <div class="mnum">1</div>
+      <div>
+        <h3>La regla del juego: ¿cuánto peor podría ser TabNet y aun así aceptarlo?</h3>
+        <p>Antes del experimento se definió cuánto peor que XGBoost podía ser TabNet
+          sin descartarlo. Ese límite es la franja azul; al modificarla, el relato
+          describe lo que ocurre.</p>
+      </div>
+    </div>
+    <div class="mod-b">
+      <div class="ctl-row">
+        <span class="ctl-lbl">Periodo</span>
+        <div class="seg" id="m1period">
+          <button data-p="base" class="on">BASE · pre-COVID</button>
+          <button data-p="stress">STRESS · post-COVID</button>
+        </div>
+      </div>
+
+      <div class="narr"><span class="ic">relato</span><p id="m1narr"></p></div>
+
+      <div class="axis-wrap">
+        <div class="axis" id="m1axis"></div>
+        <div class="band" id="m1band"><div class="band-cap" id="m1bandcap">margen aceptado ±0,020</div></div>
+        <div class="mk xg" id="mkX"><div class="pin" style="background:var(--xgb)"></div>
+          <div class="lab">XGBoost</div><div class="v mono" id="mkXv">0,974</div></div>
+        <div class="mk tn" id="mkT"><div class="pin" style="background:var(--tab)"></div>
+          <div class="lab">TabNet</div><div class="v mono" id="mkTv">0,772</div></div>
+        <div class="handle" id="m1handle" tabindex="0" role="slider"
+             aria-label="Margen aceptado" aria-valuemin="0" aria-valuemax="0.2">
+          <div class="knob mono" id="m1knob">Δ 0,020</div><div class="grip"></div>
+        </div>
+        <div class="drag-hint">control deslizable · teclas <kbd>←</kbd> <kbd>→</kbd> con foco</div>
+      </div>
+
+      <div class="m1-grid">
+        <div class="dc" style="display:flex;flex-direction:column;justify-content:center">
+          <div class="dn">Qué está pasando</div>
+          <p style="color:var(--muted);font-size:14.5px;margin-top:8px" id="m1read"></p>
+          <div style="margin-top:14px;font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--muted)">
+            Brecha XGBoost − TabNet =
+            <b style="color:var(--alert)" id="m1gap">0,202</b> &nbsp;·&nbsp;
+            margen actual <b id="m1delta">0,020</b></div>
+        </div>
+        <div class="verdict">
+          <div class="vk" id="v1k">Veredicto · BASE</div>
+          <div class="vbig" id="v1big">TabNet <u>no</u> es no inferior</div>
+          <div class="multi" id="v1mult">10,1×</div>
+          <div class="vsub" id="v1sub">fuera del corredor tolerado</div>
+          <div class="breakeven" id="v1be">Δ necesario para que entrara: <b>0,202</b></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ───── MÓDULO 2 ───── -->
+  <div class="mod reveal">
+    <div class="mod-h">
+      <div class="mnum">2</div>
+      <div>
+        <h3>El shock del COVID: ¿qué modelo es más resistente si el entorno vuelve a cambiar?</h3>
+        <p>El control recorre la economía desde antes de la pandemia (izquierda)
+          hasta después (derecha). El relato indica qué modelo se mantiene y cuál
+          se desploma.</p>
+      </div>
+    </div>
+    <div class="mod-b">
+      <div class="ctl-row">
+        <span class="ctl-lbl">Métrica</span>
+        <div class="seg" id="m2metric">
+          <button data-m="roc" class="on">ROC-AUC</button>
+          <button data-m="pr">PR-AUC</button>
+          <button data-m="brier">Brier ↓</button>
+        </div>
+      </div>
+
+      <div class="narr"><span class="ic">relato</span><p id="m2narr"></p></div>
+
+      <div class="scrub">
+        <span class="lab a">BASE · pre-COVID</span>
+        <span class="lab m">▲ shock COVID</span>
+        <span class="lab b">STRESS · post-COVID</span>
+        <div class="track"></div><div class="fill" id="m2fill"></div>
+        <div class="sh" id="m2sh" tabindex="0" role="slider"
+             aria-label="Línea de tiempo BASE a STRESS" aria-valuemin="0" aria-valuemax="100"></div>
+      </div>
+
+      <div class="chart" id="m2chart">
+        <div class="bars" id="m2bars"></div>
+      </div>
+
+      <div class="deltas" id="m2deltas"></div>
+      <p class="note">Las tres cifras de arriba indican cuánto cambió el acierto de
+        cada modelo del periodo previo al COVID al posterior: <b>negativo</b> = el
+        modelo empeoró tras el shock; <b>positivo</b> = mejoró. No miden “variabilidad”,
+        sino la diferencia entre dos momentos.<br>
+        ¿Por qué <b>TabNet sube</b> tras el COVID y no es buena noticia? Porque partía
+        de un acierto muy bajo antes del COVID, así que tenía mucho margen de mejora;
+        además se entrenó <i>solo</i> con datos previos a la pandemia, de modo que esa
+        subida <b>no</b> implica mayor capacidad de adaptación. Es un único conjunto de
+        datos y un único shock: la mejora se interpreta con prudencia. Los modelos de
+        aprendizaje profundo como TabNet suelen necesitar muchos más datos para competir
+        con XGBoost en datos en formato de tabla; ese es el motivo más probable de su
+        bajo rendimiento de partida.</p>
+    </div>
+  </div>
+
+  <!-- ───── MÓDULO 3 ───── -->
+  <div class="mod reveal">
+    <div class="mod-h">
+      <div class="mnum">3</div>
+      <div>
+        <h3>Del número a la decisión: ¿a quién revisa el banco?</h3>
+        <p>Cada solicitante recibe una nota de riesgo. En
+          <b style="color:var(--rl)">gris</b>, los que sí pagarán; en
+          <b style="color:var(--alert)">rojo</b>, los que no. La línea roja marca la
+          nota a partir de la cual el banco revisaría la solicitud; al desplazarla,
+          el relato describe el efecto.</p>
+      </div>
+    </div>
+    <div class="mod-b">
+      <div class="ctl-row">
+        <span class="ctl-lbl">Modelo</span>
+        <div class="seg" id="m3model">
+          <button data-k="xgb" class="on">XGBoost</button>
+          <button data-k="rl">Reg. Logística</button>
+          <button data-k="tab">TabNet</button>
+        </div>
+        <span class="ctl-lbl" style="margin-left:8px">Periodo</span>
+        <div class="seg" id="m3period">
+          <button data-p="base" class="on">BASE</button>
+          <button data-p="stress">STRESS</button>
+        </div>
+      </div>
+
+      <div class="narr"><span class="ic">relato</span><p id="m3narr"></p></div>
+
+      <div class="m3grid">
+        <div>
+          <div class="dist" id="m3dist">
+            <svg id="m3svg" viewBox="0 0 600 260" preserveAspectRatio="none"></svg>
+            <div class="cut" id="m3cut"><b id="m3cutlab">corte · score 0,50</b></div>
+          </div>
+          <div class="m3legend">
+            <span><i style="background:var(--rl)"></i>Préstamos sanos · no impago</span>
+            <span><i style="background:var(--alert)"></i>Impagos · charged-off</span>
+            <span><i class="cutmark"></i>Punto de corte (arrástralo)</span>
+          </div>
+        </div>
+        <div class="kpi">
+          <div class="kbox">
+            <div class="kk">Impagos capturados</div>
+            <div class="kv" id="k1" style="color:var(--good)">0</div>
+          </div>
+          <div class="kbox">
+            <div class="kk">Cartera revisada</div>
+            <div class="kv" id="k2" style="color:var(--unir-deep)">0</div>
+          </div>
+          <div class="kbox">
+            <div class="kk">Lift sobre azar</div>
+            <div class="kv mono" id="k3">0<small> ×</small></div>
+          </div>
+        </div>
+      </div>
+      <p class="note" id="m3note"></p>
+    </div>
+  </div>
+
+  <!-- ───── MÓDULO 4 — IMPACTO ECONÓMICO ───── -->
+  <div class="mod reveal" id="mod4">
+    <div class="mod-h">
+      <div class="mnum">4</div>
+      <div>
+        <h3>El coste en dinero: ¿cuánto cuesta elegir el modelo equivocado?</h3>
+        <p>La diferencia entre modelos se traslada a dólares sobre la cartera real
+          del estudio: <b>205.487 préstamos</b>. Las cifras del negocio son ajustables
+          y el relato describe el efecto.</p>
+      </div>
+    </div>
+    <div class="mod-b">
+      <div class="econ-ctl" id="econCtl"></div>
+
+      <div class="narr"><span class="ic">relato</span><p id="m4narr"></p></div>
+
+      <div class="econ-grid">
+        <div class="econ-cards" id="econCards"></div>
+        <div class="econ-verdict">
+          <div class="ev-k">Coste de elegir TabNet sobre XGBoost</div>
+          <div class="ev-big mono" id="evBig">US$ 0</div>
+          <div class="ev-sub" id="evSub">dinero que se perdería y no se podría evitar en esta cartera</div>
+          <div class="ev-row">
+            <div><span class="mono" id="evRL">US$ 0</span><small>vs Reg. Logística</small></div>
+            <div><span class="mono" id="evCaught">0</span><small>impagos no detectados</small></div>
+          </div>
+        </div>
+      </div>
+      <p class="note" id="econNote"></p>
+    </div>
+  </div>
+
+  <div class="close reveal">
+    <div class="ck">Conclusión del estudio</div>
+    <blockquote>El modelo más complejo <em>no</em> ganó.
+      Y no es una opinión: con la regla puesta <b>antes</b> de jugar y un golpe
+      económico real, TabNet no llegó a igualar a XGBoost.</blockquote>
+    <p class="cclose">Es un resultado negativo, pero sólido, reproducible y defendible.
+      Saberlo con certeza vale más que suponerlo.</p>
+  </div>
+
+  <footer>
+    <div class="sumbox">
+      <div class="sumk">Resumen de respaldo · si algo se rompe en la defensa, esto es lo que siempre puedes afirmar</div>
+      <ul>
+        <li><b>Hallazgo principal.</b> TabNet no logró igualar a XGBoost. La diferencia
+          en capacidad de acierto fue de <b>0,202</b>, unas <b>10 veces</b> mayor que el
+          margen que aceptábamos de antemano (0,02).</li>
+        <li><b>Modelo de referencia.</b> XGBoost (<i>gradient boosting</i>), el
+          estándar de la industria: en este estudio obtuvo el mayor acierto y la mayor
+          estabilidad ante el COVID.</li>
+        <li><b>Regresión Logística.</b> Estable y fácil de explicar, pero por debajo de
+          XGBoost.</li>
+        <li><b>De dónde salen las cifras.</b> Del TFM ya entregado (Tablas 5.2 a 5.4;
+          datos de antes y de después del COVID).</li>
+        <li><b>Sobre los simuladores.</b> Ilustran esas cifras y su efecto en dinero.
+          No son un dato nuevo: son la consecuencia de la diferencia ya demostrada.</li>
+      </ul>
+    </div>
+    <div class="byline">Robinson José Miranda Pérez · Máster Universitario en Inteligencia Artificial · UNIR · Febrero 2026</div>
+  </footer>
+</div>
+<button id="presentBtn" class="present-btn">▶ Modo defensa</button>
+<div class="stage" id="stage" aria-hidden="true">
+  <div class="stage-bar">
+    <div class="stage-dots" id="stageDots"></div>
+    <div class="stage-cue" id="stageCue"></div>
+    <div class="stage-nav">
+      <button id="stPrev" aria-label="anterior">◂</button>
+      <span class="mono" id="stCount">1 / 6</span>
+      <button id="stNext" aria-label="siguiente">▸</button>
+      <button id="stExit" aria-label="salir">Esc ✕</button>
+    </div>
+  </div>
+</div>
+<div class="tip" id="tip"></div>
+
+<script>
+document.getElementById('logo').src="data:image/png;base64,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";
+
+/* ════ Datos del TFM ════ */
+const DAT={
+  roc:{base:{rl:.871,xgb:.974,tab:.772},stress:{rl:.836,xgb:.963,tab:.906},max:1,lower:false,nm:"ROC-AUC"},
+  pr :{base:{rl:.507,xgb:.788,tab:.218},stress:{rl:.281,xgb:.803,tab:.489},max:1,lower:false,nm:"PR-AUC"},
+  brier:{base:{rl:.0512,xgb:.0299,tab:.0826},stress:{rl:.0693,xgb:.0306,tab:.0517},max:.09,lower:true,nm:"Brier"}
+};
+const COL={rl:'var(--rl)',xgb:'var(--xgb)',tab:'var(--tab)'};
+const NAME={rl:'Reg. Logística',xgb:'XGBoost',tab:'TabNet'};
+const esp=v=>v.toFixed(3).replace('.',',');
+const esp4=v=>v.toFixed(4).replace('.',',');
+const cssv=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+
+/* tooltip */
+const tip=document.getElementById('tip');
+function showTip(e,html){tip.innerHTML=html;tip.style.opacity=1;
+  tip.style.left=(e.clientX+14)+'px';tip.style.top=(e.clientY-10)+'px';}
+function hideTip(){tip.style.opacity=0;}
+
+/* ════ MÓDULO 1 — margen arrastrable ════ */
+let m1p='base', m1d=0.02;
+const AX_MIN=.70, AX_MAX=1.00;
+const axisEl=document.getElementById('m1axis');
+function axPct(v){return (v-AX_MIN)/(AX_MAX-AX_MIN)*100;}
+(function ticks(){
+  axisEl.innerHTML='';
+  for(let v=.70;v<=1.0001;v+=.05){
+    const t=document.createElement('div');t.className='tick';
+    t.style.left=((v-AX_MIN)/(AX_MAX-AX_MIN)*100)+'%';
+    t.innerHTML='<b>'+esp(v)+'</b>';axisEl.appendChild(t);
+  }
+})();
+function m1render(){
+  const xv=DAT.roc[m1p].xgb, tv=DAT.roc[m1p].tab;
+  document.getElementById('mkXv').textContent=esp(xv);
+  document.getElementById('mkTv').textContent=esp(tv);
+  document.getElementById('mkX').style.left=axPct(xv)+'%';
+  document.getElementById('mkT').style.left=axPct(tv)+'%';
+  const lo=Math.max(AX_MIN,xv-m1d), hi=Math.min(AX_MAX,xv+m1d);
+  const band=document.getElementById('m1band');
+  band.style.left=axPct(lo)+'%'; band.style.width=(axPct(hi)-axPct(lo))+'%';
+  document.getElementById('m1bandcap').textContent='margen aceptado ±'+esp(m1d);
+  const hx=axPct(lo);                 /* el control ES el borde inferior del corredor */
+  const h=document.getElementById('m1handle');
+  h.style.left=hx+'%';
+  document.getElementById('m1knob').textContent='Δ '+esp(m1d);
+  const gap=xv-tv;
+  document.getElementById('m1gap').textContent=esp(gap);
+  document.getElementById('m1delta').textContent=esp(m1d);
+  const inside = tv >= lo;
+  const mult=(gap/m1d);
+  const v1mult=document.getElementById('v1mult');
+  document.getElementById('v1k').textContent='Veredicto · '+(m1p==='base'?'antes del COVID':'después del COVID');
+  if(inside){
+    document.getElementById('v1big').innerHTML='TabNet <u>sí</u> igualaría';
+    v1mult.textContent='✓'; v1mult.classList.add('ok');
+    document.getElementById('v1sub').textContent='pero solo aflojando la regla muy por encima de lo aceptable (0,02)';
+  }else{
+    document.getElementById('v1big').innerHTML='TabNet <u>no</u> iguala a XGBoost';
+    v1mult.textContent=mult.toFixed(1).replace('.',',')+'×'; v1mult.classList.remove('ok');
+    document.getElementById('v1sub').textContent='la diferencia es '+mult.toFixed(1).replace('.',',')+' veces mayor que el margen elegido';
+  }
+  document.getElementById('v1be').innerHTML='Margen que haría falta para igualar: <b>'+esp(gap)+'</b>';
+  document.getElementById('m1read').textContent = inside
+    ? 'Aceptando una diferencia de '+esp(m1d)+', el límite inferior baja a '+esp(lo)+'. La nota de TabNet ('+esp(tv)+') ya queda dentro, pero ese margen es tan grande que ningún banco lo aceptaría.'
+    : 'Aceptando una diferencia de '+esp(m1d)+', el límite inferior es '+esp(lo)+'. TabNet ('+esp(tv)+') sigue por debajo: para que entrara habría que aceptar una diferencia de '+esp(gap)+'.';
+  document.getElementById('hverdict').textContent = inside?'Regla muy aflojada':'TabNet no iguala a XGBoost';
+  document.getElementById('hdot').style.background = inside?cssv('--good'):cssv('--alert');
+
+  const per = m1p==='base'?'antes del COVID':'después del COVID';
+  const factorNec=(gap/0.02).toFixed(1).replace('.',',');
+  let story;
+  if(Math.abs(m1d-0.02)<0.003){
+    story='La franja azul es el <b>margen aceptado</b>: cuánto peor que XGBoost ('+esp(xv)+
+      ' de acierto) podía ser TabNet sin descartarlo. Se fijó en <b>0,020</b> '+per+'. '+
+      'TabNet acierta solo <b>'+esp(tv)+'</b> y queda <span class="hl">muy por debajo</span> '+
+      'de la franja: la diferencia real es <b>'+esp(gap)+'</b>, unas <b>'+factorNec+
+      ' veces</b> lo tolerado.<span class="nxt">▸ Al desplazar la franja hacia TabNet '+
+      'se aprecia cuánto habría que ceder para aceptarlo.</span>';
+  } else if(!inside){
+    story='Con un margen de <b>'+esp(m1d)+'</b> la regla está más floja, y aun así '+
+      'TabNet sigue <span class="hl">por debajo</span> del límite: la diferencia real es '+
+      '<b>'+mult.toFixed(1).replace('.',',')+' veces</b> ese margen.'+
+      '<span class="nxt">▸ Solo se alcanzaría aceptando una diferencia de '+esp(gap)+'.</span>';
+  } else {
+    story='TabNet solo entra al aceptar una diferencia de <b>'+esp(m1d)+'</b>: <b>'+
+      factorNec+' veces</b> mayor que el límite razonable (0,020), una diferencia que '+
+      'ningún banco aceptaría. Ese es el tamaño <span class="hl">real</span> del problema '+
+      per+': no es un detalle, es de fondo.<span class="nxt">▸ El margen 0,020 corresponde '+
+      'al punto de partida del experimento.</span>';
+  }
+  document.getElementById('m1narr').innerHTML=story;
+}
+/* drag */
+function dragMargin(clientX){
+  const r=document.querySelector('.axis-wrap').getBoundingClientRect();
+  const pad=60;
+  const xv=DAT.roc[m1p].xgb;
+  let frac=(clientX - (r.left+pad))/(r.width-2*pad);
+  frac=Math.max(0,Math.min(1,frac));
+  const edge=AX_MIN+frac*(AX_MAX-AX_MIN);     // valor del borde INFERIOR del corredor
+  const cap=xv-AX_MIN;                         // máximo Δ visible en el eje
+  m1d=Math.max(0,Math.min(cap, xv-edge));
+  m1render();
+}
+(function(){
+  const h=document.getElementById('m1handle');
+  let on=false;
+  h.addEventListener('pointerdown',e=>{on=true;h.setPointerCapture(e.pointerId);dragMargin(e.clientX);});
+  h.addEventListener('pointermove',e=>{if(on)dragMargin(e.clientX);});
+  h.addEventListener('pointerup',()=>on=false);
+  h.addEventListener('keydown',e=>{
+    const cap=DAT.roc[m1p].xgb-AX_MIN;
+    if(e.key==='ArrowLeft'){m1d=Math.min(cap,m1d+.005);m1render();e.preventDefault();}
+    if(e.key==='ArrowRight'){m1d=Math.max(0,m1d-.005);m1render();e.preventDefault();}
+  });
+})();
+document.getElementById('m1period').addEventListener('click',e=>{
+  if(!e.target.dataset.p)return; m1p=e.target.dataset.p;
+  [...e.currentTarget.children].forEach(b=>b.classList.toggle('on',b===e.target));
+  m1render();
+});
+
+/* ════ MÓDULO 2 — scrubber ════ */
+let m2m='roc', m2t=0;   // 0=BASE 1=STRESS
+const lerp=(a,b,t)=>a+(b-a)*t;
+function m2gridlines(){
+  const m=DAT[m2m], c=document.getElementById('m2chart');
+  c.querySelectorAll('.gl').forEach(x=>x.remove());
+  for(let i=0;i<=5;i++){const v=m.max/5*i;const g=document.createElement('div');
+    g.className='gl';g.style.bottom=(v/m.max*100)+'%';
+    g.innerHTML='<span>'+(m.max===1?esp(v):v.toFixed(3).replace('.',','))+'</span>';
+    c.appendChild(g);}
+}
+let m2anim={};
+function m2render(animate){
+  const m=DAT[m2m];
+  document.getElementById('m2fill').style.width=(m2t*100)+'%';
+  document.getElementById('m2sh').style.left=(m2t*100)+'%';
+  const bars=document.getElementById('m2bars');
+  const order=['rl','xgb','tab'];
+  if(bars.children.length!==3){
+    bars.innerHTML='';
+    order.forEach(k=>{
+      const bc=document.createElement('div');bc.className='bc';
+      const b=document.createElement('div');b.className='bar';b.dataset.k=k;
+      b.style.background='linear-gradient(180deg,'+COL[k]+', color-mix(in srgb,'+COL[k]+' 78%, black))';
+      b.innerHTML='<div class="bv" style="color:'+COL[k]+'"></div>';
+      const nm=document.createElement('div');nm.className='bn';nm.textContent=NAME[k];
+      bc.appendChild(b);bc.appendChild(nm);bars.appendChild(bc);
+      b.addEventListener('pointermove',e=>{const v=lerp(m.base[k],m.stress[k],m2t);
+        showTip(e,NAME[k]+' · '+m.nm+' = <b>'+(m.max===1?esp(v):esp4(v))+'</b>');});
+      b.addEventListener('pointerleave',hideTip);
+    });
+  }
+  [...bars.children].forEach(bc=>{
+    const b=bc.firstChild,k=b.dataset.k;
+    const v=lerp(m.base[k],m.stress[k],m2t);
+    b.style.height=Math.max(2,v/m.max*100)+'%';
+    b.querySelector('.bv').textContent=(m.max===1?esp(v):esp4(v));
+  });
+  /* deltas */
+  const dl=document.getElementById('m2deltas');dl.innerHTML='';
+  order.forEach(k=>{
+    const d=m.stress[k]-m.base[k];
+    const good = m.lower? d<0 : d>0;
+    const col = Math.abs(d)<0.02? cssv('--muted') : (good?cssv('--good'):cssv('--alert'));
+    const div=document.createElement('div');div.className='dc';
+    div.innerHTML='<div class="dn" style="color:'+COL[k]+'">'+NAME[k]+'</div>'+
+      '<div class="dv" style="color:'+col+'">'+(d>=0?'+':'')+esp(d).replace(/0+$/,'')+'</div>'+
+      '<div class="dt">cambio de antes a después del COVID</div>';
+    dl.appendChild(div);
+  });
+  m2gridlines();
+
+  const pct=Math.round(m2t*100);
+  const dx=m.stress.xgb-m.base.xgb, dt=m.stress.tab-m.base.tab, dr=m.stress.rl-m.base.rl;
+  const u=v=>(v>=0?'+':'')+esp(v).replace(/0+$/,'');
+  let st;
+  if(m2t<0.06){
+    st='Economía <b>previa a la pandemia</b>. La barra mide el acierto de cada modelo ('+
+      m.nm+'): XGBoost encabeza con <b>'+
+      (m.max===1?esp(m.base.xgb):esp4(m.base.xgb))+'</b> y TabNet cierra con <b>'+
+      (m.max===1?esp(m.base.tab):esp4(m.base.tab))+'</b>.'+
+      '<span class="nxt">▸ El recorrido del control hacia la derecha lleva a la economía posterior al COVID.</span>';
+  } else if(m2t<0.94){
+    st='Punto intermedio del <span class="hl">COVID</span> ('+pct+'% del recorrido): '+
+      'las barras varían y se aprecia cuál se mantiene y cuál cae.'+
+      '<span class="nxt">▸ El extremo derecho corresponde al resultado final.</span>';
+  } else {
+    st='Economía <b>posterior al COVID</b>: XGBoost apenas varía ('+u(dx)+'), la '+
+      'Regresión Logística empeora ('+u(dr)+') y TabNet '+(dt>0?'sube':'cambia')+' ('+u(dt)+
+      '), pero por venir de muy abajo. <span class="hl">El modelo que mejor acierta es '+
+      'también el que mejor aguanta el cambio.</span>';
+  }
+  document.getElementById('m2narr').innerHTML=st;
+}
+function m2drag(clientX){
+  const r=document.querySelector('.scrub').getBoundingClientRect();
+  m2t=Math.max(0,Math.min(1,(clientX-r.left)/r.width));
+  m2render();
+}
+(function(){
+  const sh=document.getElementById('m2sh');let on=false;
+  const area=document.querySelector('.scrub');
+  sh.addEventListener('pointerdown',e=>{on=true;sh.setPointerCapture(e.pointerId);});
+  sh.addEventListener('pointermove',e=>{if(on)m2drag(e.clientX);});
+  sh.addEventListener('pointerup',()=>on=false);
+  area.addEventListener('pointerdown',e=>{if(e.target!==sh)m2drag(e.clientX);});
+  sh.addEventListener('keydown',e=>{
+    if(e.key==='ArrowLeft'){m2t=Math.max(0,m2t-.05);m2render();e.preventDefault();}
+    if(e.key==='ArrowRight'){m2t=Math.min(1,m2t+.05);m2render();e.preventDefault();}
+  });
+})();
+document.getElementById('m2metric').addEventListener('click',e=>{
+  if(!e.target.dataset.m)return;m2m=e.target.dataset.m;
+  [...e.currentTarget.children].forEach(b=>b.classList.toggle('on',b===e.target));
+  m2render();
+});
+
+/* ════ MÓDULO 3 — simulador de decisión ════ */
+let m3k='xgb', m3p='base', m3cut=0.5;
+const BASE_RATE=0.079;
+/* Φ */
+function ndf(x){return Math.exp(-x*x/2)/Math.sqrt(2*Math.PI);}
+function Phi(x){ // Abramowitz-Stegun
+  const t=1/(1+0.2316419*Math.abs(x));
+  const d=0.3989423*Math.exp(-x*x/2);
+  let p=d*t*(0.3193815+t*(-0.3565638+t*(1.781478+t*(-1.821256+t*1.330274))));
+  return x>0?1-p:p;
+}
+/* separación bi-normal d' a partir de AUC: AUC=Φ(d'/√2) */
+function dprime(auc){ // inversa de Φ aproximada (Beasley-Springer-Moro simplificada)
+  const a=auc<=.5?.5001:Math.min(.9999,auc);
+  // invΦ via rational approx
+  function invPhi(p){
+    const a1=-39.696830,a2=220.946098,a3=-275.928510,a4=138.357751,a5=-30.664798,a6=2.506628;
+    const b1=-54.476098,b2=161.585836,b3=-155.698979,b4=66.801311,b5=-13.280681;
+    const c1=-7.784894e-3,c2=-.3223964,c3=-2.400758,c4=-2.549732,c5=4.374664,c6=2.938163;
+    const d1=7.784695e-3,d2=.3224671,d3=2.445134,d4=3.754408;
+    const pl=.02425;let q,r;
+    if(p<pl){q=Math.sqrt(-2*Math.log(p));return (((((c1*q+c2)*q+c3)*q+c4)*q+c5)*q+c6)/((((d1*q+d2)*q+d3)*q+d4)*q+1);}
+    if(p<=1-pl){q=p-.5;r=q*q;return (((((a1*r+a2)*r+a3)*r+a4)*r+a5)*r+a6)*q/(((((b1*r+b2)*r+b3)*r+b4)*r+b5)*r+1);}
+    q=Math.sqrt(-2*Math.log(1-p));return -(((((c1*q+c2)*q+c3)*q+c4)*q+c5)*q+c6)/((((d1*q+d2)*q+d3)*q+d4)*q+1);
+  }
+  return invPhi(a)*Math.SQRT2;
+}
+function m3render(){
+  const auc=DAT.roc[m3p][m3k];
+  const d=dprime(auc);              // malos ~ N(d,1), buenos ~ N(0,1)
+  const svg=document.getElementById('m3svg');
+  const W=600,H=260, x0=-3.5, x1=4.5;
+  const sx=v=> (v-x0)/(x1-x0)*W;
+  const goodMax=ndf(0), badMax=ndf(0);
+  const sy=p=> H - 18 - p/0.42*(H-40);
+  let g='', b='';
+  for(let px=0;px<=W;px+=4){
+    const xv=x0+px/W*(x1-x0);
+    g+=(px?'L':'M')+px+' '+sy(ndf(xv)*(1-BASE_RATE))+' ';
+    b+=(px?'L':'M')+px+' '+sy(ndf(xv-d)*BASE_RATE*6)+' ';
+  }
+  svg.innerHTML=
+    '<path d="'+g+'" fill="none" stroke="'+cssv('--rl')+'" stroke-width="2"/>'+
+    '<path d="'+g+' L600 242 L0 242 Z" fill="rgba(126,138,151,.12)"/>'+
+    '<path d="'+b+'" fill="none" stroke="'+cssv('--alert')+'" stroke-width="2.4"/>'+
+    '<path d="'+b+' L600 242 L0 242 Z" fill="rgba(179,38,30,.14)"/>';
+  /* cut position: map score 0..1 -> threshold on latent axis */
+  const thr = x0 + m3cut*(x1-x0);
+  document.getElementById('m3cut').style.left=(sx(thr)/W*100)+'%';
+  document.getElementById('m3cutlab').textContent='corte · score '+m3cut.toFixed(2).replace('.',',');
+  /* capture = P(bad > thr), reviewed = overall fraction > thr */
+  const capt = 1-Phi(thr-d);
+  const rev  = (1-BASE_RATE)*(1-Phi(thr)) + BASE_RATE*(1-Phi(thr-d));
+  const lift = rev>0 ? (capt/rev) : 0;
+  document.getElementById('k1').textContent=(capt*100).toFixed(0)+' %';
+  document.getElementById('k2').textContent=(rev*100).toFixed(0)+' %';
+  document.getElementById('k3').innerHTML=lift.toFixed(2).replace('.',',')+'<small> ×</small>';
+  document.getElementById('m3note').innerHTML=
+    NAME[m3k]+' · '+(m3p==='base'?'antes del COVID':'después del COVID')+
+    ' (acierto '+esp(auc)+'). Revisando el <b>'+(rev*100).toFixed(0)+'%</b> de '+
+    'solicitudes más arriesgadas detecta el <b>'+(capt*100).toFixed(0)+'%</b> de los '+
+    'impagos, '+lift.toFixed(1).replace('.',',')+' veces mejor que al azar. Es una '+
+    'simulación basada en la capacidad de acierto de cada modelo; no es un dato nuevo del TFM.';
+
+  const rv=Math.round(rev*100), cp=Math.round(capt*100), lf=lift.toFixed(1).replace('.',',');
+  const mdl=NAME[m3k], otra = m3k==='xgb' ? 'TabNet' : 'XGBoost';
+  let s3;
+  if(rev>0.6){
+    s3='Con el corte tan a la izquierda, el banco tendría que revisar el <b>'+rv+
+      '%</b> de todas las solicitudes: casi todas. Así no se <span class="hl">separa</span> '+
+      'a nadie.<span class="nxt">▸ Desplazar la línea roja a la derecha aumenta la '+
+      'exigencia y reduce las solicitudes a revisar.</span>';
+  } else if(rev>0.15){
+    s3='Revisando solo el <b>'+rv+'%</b> de solicitudes (las más arriesgadas), '+mdl+
+      ' detecta el <b>'+cp+'%</b> de los que no pagarán: <b>'+lf+' veces</b> mejor que '+
+      'al azar. <span class="hl">Esa es la utilidad real del modelo.</span> Cada impago '+
+      'no detectado es dinero prestado que no vuelve.<span class="nxt">▸ Con '+otra+
+      ', al mismo esfuerzo, la detección cambia.</span>';
+  } else {
+    s3='Con muy poco esfuerzo (solo el <b>'+rv+'%</b>), '+mdl+' ya detecta el <b>'+cp+
+      '%</b> de los que no pagarán.<span class="nxt">▸ Con '+otra+', lo que baje esa '+
+      'detección equivale, en la práctica, a la diferencia entre los modelos.</span>';
+  }
+  document.getElementById('m3narr').innerHTML=s3;
+}
+function m3drag(clientX){
+  const r=document.getElementById('m3dist').getBoundingClientRect();
+  m3cut=Math.max(0,Math.min(1,(clientX-r.left)/r.width));
+  m3render();
+}
+(function(){
+  const cut=document.getElementById('m3cut');let on=false;
+  const area=document.getElementById('m3dist');
+  cut.addEventListener('pointerdown',e=>{on=true;cut.setPointerCapture(e.pointerId);e.stopPropagation();});
+  cut.addEventListener('pointermove',e=>{if(on)m3drag(e.clientX);});
+  cut.addEventListener('pointerup',()=>on=false);
+  area.addEventListener('pointerdown',e=>{if(e.target!==cut)m3drag(e.clientX);});
+})();
+document.getElementById('m3model').addEventListener('click',e=>{
+  if(!e.target.dataset.k)return;m3k=e.target.dataset.k;
+  [...e.currentTarget.children].forEach(b=>b.classList.toggle('on',b===e.target));m3render();});
+document.getElementById('m3period').addEventListener('click',e=>{
+  if(!e.target.dataset.p)return;m3p=e.target.dataset.p;
+  [...e.currentTarget.children].forEach(b=>b.classList.toggle('on',b===e.target));m3render();});
+
+/* ════ MÓDULO 4 — impacto económico ════ */
+const N_BOOK=205487;
+let ecP=7.9, ecEAD=150000, ecLGD=60, ecF=10;
+function solveThr(f,d,p){
+  let lo=-6,hi=7;
+  for(let i=0;i<60;i++){const m=(lo+hi)/2;
+    const rev=(1-p)*(1-Phi(m))+p*(1-Phi(m-d));
+    if(rev>f) lo=m; else hi=m;}
+  return (lo+hi)/2;
+}
+function fmtUSD(v){
+  const a=Math.abs(v);
+  if(a>=1e9) return 'US$ '+(v/1e9).toFixed(2).replace('.',',')+' B';
+  if(a>=1e6) return 'US$ '+(v/1e6).toFixed(2).replace('.',',')+' M';
+  if(a>=1e3) return 'US$ '+Math.round(v).toLocaleString('es-ES');
+  return 'US$ '+Math.round(v);
+}
+function buildEconCtl(){
+  const C=[
+    ['Tasa de impago','ecP',ecP,3,15,.1,v=>v.toFixed(1).replace('.',',')+' %'],
+    ['Préstamo medio (USD)','ecEAD',ecEAD,20000,500000,5000,v=>fmtUSD(v)],
+    ['Pérdida si no paga (%)','ecLGD',ecLGD,20,90,1,v=>v+' %'],
+    ['Cartera revisada','ecF',ecF,2,40,1,v=>v+' %']
+  ];
+  document.getElementById('econCtl').innerHTML=C.map(c=>
+    `<div class="ec"><label>${c[0]}</label><div class="ev" id="${c[1]}_v">${c[6](c[2])}</div>
+     <input type="range" data-k="${c[1]}" min="${c[3]}" max="${c[4]}" step="${c[5]}" value="${c[2]}"></div>`).join('');
+  document.querySelectorAll('#econCtl input').forEach(inp=>{
+    inp.addEventListener('input',e=>{
+      const k=e.target.dataset.k, val=parseFloat(e.target.value);
+      if(k==='ecP')ecP=val; if(k==='ecEAD')ecEAD=val; if(k==='ecLGD')ecLGD=val; if(k==='ecF')ecF=val;
+      const fn=C.find(c=>c[1]===k)[6]; document.getElementById(k+'_v').textContent=fn(val);
+      econRender();
+    });
+  });
+}
+function econRender(){
+  const p=ecP/100, f=ecF/100, lgd=ecLGD/100;
+  const Dn=N_BOOK*p;
+  const res={};
+  ['rl','xgb','tab'].forEach(k=>{
+    const a=DAT.roc.base[k], d=dprime(a);
+    const thr=solveThr(f,d,p);
+    const capt=1-Phi(thr-d);          // fracción de impagos capturada
+    const caught=Dn*capt;
+    const lossMit=caught*lgd*ecEAD;   // pérdida esperada mitigada
+    res[k]={capt,caught,lossMit,a};
+  });
+  const maxMit=Math.max(res.rl.lossMit,res.xgb.lossMit,res.tab.lossMit)||1;
+  const cards=document.getElementById('econCards');
+  cards.innerHTML=['xgb','rl','tab'].map(k=>{
+    const r=res[k];
+    return `<div class="mcard">
+      <div class="mn" style="color:${COL[k]}">${NAME[k]}
+        <div style="font-size:11px;color:var(--faint);font-weight:500">ROC ${esp(r.a)}</div></div>
+      <div class="track"><div class="bar" style="width:${(r.lossMit/maxMit*100).toFixed(1)}%;
+        background:${COL[k]}"></div></div>
+      <div class="mv">${fmtUSD(r.lossMit)}<small>${Math.round(r.caught).toLocaleString('es-ES')} impagos detectados</small></div>
+    </div>`;}).join('');
+  const dXT=res.xgb.lossMit-res.tab.lossMit;
+  const dXR=res.xgb.lossMit-res.rl.lossMit;
+  const dCnt=Math.round(res.xgb.caught-res.tab.caught);
+  document.getElementById('evBig').textContent=fmtUSD(dXT);
+  document.getElementById('evSub').textContent='pérdida esperada que TabNet deja sin mitigar frente a XGBoost';
+  document.getElementById('evRL').textContent=fmtUSD(dXR);
+  document.getElementById('evCaught').textContent=dCnt.toLocaleString('es-ES');
+
+  document.getElementById('m4narr').innerHTML=
+    'Con estas cifras (préstamo medio <b>'+fmtUSD(ecEAD)+'</b>; se pierde el <b>'+ecLGD+
+    '%</b> cuando alguien no paga; el banco revisa el <b>'+ecF+'%</b> más arriesgado), '+
+    'usar TabNet en lugar de XGBoost dejaría escapar <span class="hl">'+fmtUSD(dXT)+
+    '</span>: <b>'+dCnt.toLocaleString('es-ES')+'</b> clientes que no pagarán y que el '+
+    'peor modelo no detecta, dinero prestado que no vuelve.'+
+    '<span class="nxt">▸ Al aumentar el préstamo medio o el porcentaje que se pierde, '+
+    'la fuga crece: una diferencia pequeña de acierto cuesta millones.</span>';
+
+  document.getElementById('econNote').innerHTML=
+    `Cartera del estudio: <b>${N_BOOK.toLocaleString('es-ES')}</b> préstamos. `+
+    `Si el banco revisa el <b>${ecF}%</b> de solicitudes más arriesgadas, XGBoost `+
+    `detecta el <b>${(res.xgb.capt*100).toFixed(0)}%</b> de los impagos y TabNet solo `+
+    `el <b>${(res.tab.capt*100).toFixed(0)}%</b>, con el mismo esfuerzo. Es una `+
+    `simulación para ver en dinero el efecto de esa diferencia de acierto: no es un `+
+    `dato nuevo del TFM, sino la consecuencia de la diferencia de 0,202 ya demostrada.`;
+}
+
+/* ════ MODO DEFENSA (presenter) ════ */
+const STAGE_ELS=[...document.querySelectorAll('.hero,.mod,.close')];
+const STEPS=[
+  [1,'La regla se fijó <em>antes</em> de ver los datos: cuánto peor podía ser TabNet sin descartarlo.'],
+  [1,'Aun aflojando la regla <em>diez veces</em>, TabNet no llega: la diferencia es de fondo, no un matiz.'],
+  [2,'Con el golpe del COVID se observa que el modelo que mejor acierta es el que mejor <em>aguanta</em>.'],
+  [3,'Del número a la decisión: la capacidad de acierto se traduce en a quién revisa el banco.'],
+  [4,'El coste de elegir mal, en <em>dólares</em>, sobre una cartera real de préstamos.'],
+  [5,'El modelo más complejo no ganó: con la regla fijada de antemano y un golpe real, TabNet no igualó a XGBoost.']
+];
+let beat=0, presenting=false;
+const stage=document.getElementById('stage');
+function drawDots(){
+  document.getElementById('stageDots').innerHTML=
+    STEPS.map((_,i)=>`<i class="${i===beat?'on':''}"></i>`).join('');
+}
+function showBeat(){
+  const [idx,cue]=STEPS[beat];
+  STAGE_ELS.forEach((el,i)=>el.classList.toggle('spot',i===idx));
+  STAGE_ELS[idx].scrollIntoView({behavior:'smooth',block:'center'});
+  document.getElementById('stageCue').innerHTML=cue;
+  document.getElementById('stCount').textContent=(beat+1)+' / '+STEPS.length;
+  drawDots();
+}
+function enterPresent(){presenting=true;document.body.classList.add('presenting');
+  stage.setAttribute('aria-hidden','false');beat=0;showBeat();}
+function exitPresent(){presenting=false;document.body.classList.remove('presenting');
+  stage.setAttribute('aria-hidden','true');
+  STAGE_ELS.forEach(el=>el.classList.remove('spot'));}
+function nextBeat(){if(beat<STEPS.length-1){beat++;showBeat();}else exitPresent();}
+function prevBeat(){if(beat>0){beat--;showBeat();}}
+document.getElementById('presentBtn').addEventListener('click',enterPresent);
+document.getElementById('stNext').addEventListener('click',nextBeat);
+document.getElementById('stPrev').addEventListener('click',prevBeat);
+document.getElementById('stExit').addEventListener('click',exitPresent);
+addEventListener('keydown',e=>{
+  const onSlider=document.activeElement&&
+    (document.activeElement.getAttribute&&document.activeElement.getAttribute('role')==='slider'
+     ||document.activeElement.tagName==='INPUT');
+  if((e.key==='p'||e.key==='P')&&!onSlider){presenting?exitPresent():enterPresent();return;}
+  if(!presenting)return;
+  if(e.key==='Escape'){exitPresent();}
+  if((e.key===' '||e.key==='ArrowRight'||e.key==='PageDown')&&!onSlider){nextBeat();e.preventDefault();}
+  if((e.key==='ArrowLeft'||e.key==='PageUp')&&!onSlider){prevBeat();e.preventDefault();}
+});
+
+buildEconCtl(); econRender();
+
+
+const io=new IntersectionObserver(es=>es.forEach(x=>{if(x.isIntersecting)x.target.classList.add('in')}),{threshold:.08});
+document.querySelectorAll('.reveal').forEach(s=>io.observe(s));
+
+/* global keys */
+addEventListener('keydown',e=>{
+  if(e.key==='b'||e.key==='B'){m1p='base';syncM1();m1render();}
+  if(e.key==='s'||e.key==='S'){m1p='stress';syncM1();m1render();}
+});
+function syncM1(){[...document.getElementById('m1period').children]
+  .forEach(b=>b.classList.toggle('on',b.dataset.p===m1p));}
+
+m1render(); m2render(); m3render();
+</script>
+</body>
+</html>
